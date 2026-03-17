@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Background circle -->
+  <rect width="512" height="512" rx="112" fill="#007AFF"/>
+  <!-- Coin / lens circle -->
+  <circle cx="256" cy="240" r="140" stroke="white" stroke-width="28" fill="none" opacity="0.9"/>
+  <!-- ¥ symbol -->
+  <text x="256" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="160" font-weight="600" fill="white">¥</text>
+  <!-- Lens handle -->
+  <line x1="355" y1="345" x2="420" y2="410" stroke="white" stroke-width="28" stroke-linecap="round" opacity="0.9"/>
+  <!-- App name -->
+  <text x="256" y="460" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700" fill="white" opacity="0.95">钱迹</text>
+</svg>
