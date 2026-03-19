@@ -5,15 +5,25 @@ import { seedCategories } from './seed';
 let client: TursoClient | null = null;
 let initPromise: Promise<void> | null = null;
 
-function getEnvVar(name: string): string | undefined {
-  // Try process.env first (works in Node.js / local dev)
-  if (process.env[name]) return process.env[name];
-
-  // Try Cloudflare context (works in Workers runtime)
+function getDbUrl(): string | undefined {
+  // Literal access so Next.js inlines at build time
+  if (process.env.TURSO_DATABASE_URL) return process.env.TURSO_DATABASE_URL;
+  // Fallback: Cloudflare Workers runtime bindings
   try {
     const { getCloudflareContext } = require('@opennextjs/cloudflare');
     const { env } = getCloudflareContext();
-    return (env as Record<string, string>)[name];
+    return (env as Record<string, string>).TURSO_DATABASE_URL;
+  } catch {
+    return undefined;
+  }
+}
+
+function getAuthToken(): string | undefined {
+  if (process.env.TURSO_AUTH_TOKEN) return process.env.TURSO_AUTH_TOKEN;
+  try {
+    const { getCloudflareContext } = require('@opennextjs/cloudflare');
+    const { env } = getCloudflareContext();
+    return (env as Record<string, string>).TURSO_AUTH_TOKEN;
   } catch {
     return undefined;
   }
@@ -21,11 +31,11 @@ function getEnvVar(name: string): string | undefined {
 
 function getClient(): TursoClient {
   if (!client) {
-    const url = getEnvVar('TURSO_DATABASE_URL');
+    const url = getDbUrl();
     if (!url) {
       throw new Error('请配置 TURSO_DATABASE_URL 环境变量');
     }
-    client = createTursoClient(url, getEnvVar('TURSO_AUTH_TOKEN'));
+    client = createTursoClient(url, getAuthToken());
   }
   return client;
 }
