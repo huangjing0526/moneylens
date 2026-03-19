@@ -3,8 +3,14 @@ import { getCategories } from '@/lib/db/queries';
 import { getDb } from '@/lib/db';
 
 export async function GET() {
-  const categories = await getCategories();
-  return NextResponse.json(categories);
+  try {
+    const categories = await getCategories();
+    return NextResponse.json(categories);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('GET /api/categories error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
