@@ -1,4 +1,4 @@
-import type { Client, InStatement } from '@libsql/client';
+import type { TursoClient, InStatement } from './turso-client';
 
 const DEFAULT_CATEGORIES = [
   { slug: 'food', name: '餐饮', icon: 'Utensils', color: '#ff9500', sort_order: 1, is_income: 0 },
@@ -110,7 +110,7 @@ const DEFAULT_RULES = [
   { keyword: '退货', category_slug: 'refund', priority: 10 },
 ];
 
-export async function seedCategories(db: Client) {
+export async function seedCategories(db: TursoClient) {
   const count = await db.execute('SELECT COUNT(*) as cnt FROM categories');
   if ((count.rows[0] as unknown as { cnt: number }).cnt > 0) return;
 

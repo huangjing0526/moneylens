@@ -1,8 +1,8 @@
-import { createClient, type Client } from '@libsql/client';
+import { createTursoClient, type TursoClient } from './turso-client';
 import { initSchema } from './schema';
 import { seedCategories } from './seed';
 
-let client: Client | null = null;
+let client: TursoClient | null = null;
 let initPromise: Promise<void> | null = null;
 
 function getEnvVar(name: string): string | undefined {
@@ -19,25 +19,18 @@ function getEnvVar(name: string): string | undefined {
   }
 }
 
-function getClient(): Client {
+function getClient(): TursoClient {
   if (!client) {
-    let url = getEnvVar('TURSO_DATABASE_URL');
+    const url = getEnvVar('TURSO_DATABASE_URL');
     if (!url) {
       throw new Error('请配置 TURSO_DATABASE_URL 环境变量');
     }
-    // Convert libsql:// to https:// for HTTP transport (required for Cloudflare Workers)
-    if (url.startsWith('libsql://')) {
-      url = url.replace('libsql://', 'https://');
-    }
-    client = createClient({
-      url,
-      authToken: getEnvVar('TURSO_AUTH_TOKEN'),
-    });
+    client = createTursoClient(url, getEnvVar('TURSO_AUTH_TOKEN'));
   }
   return client;
 }
 
-export async function getDb(): Promise<Client> {
+export async function getDb(): Promise<TursoClient> {
   const c = getClient();
   if (!initPromise) {
     initPromise = (async () => {

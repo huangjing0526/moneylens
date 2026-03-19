@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import type { InValue } from '@libsql/client';
+import type { InValue } from '@/lib/db/turso-client';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

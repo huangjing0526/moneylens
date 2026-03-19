@@ -3,7 +3,7 @@ import { getDb } from '@/lib/db';
 import { classifyTransaction } from '@/lib/categories/engine';
 import { clearRulesCache } from '@/lib/categories/engine';
 import type { TransactionInput } from '@/types';
-import type { InStatement } from '@libsql/client';
+import type { InStatement } from '@/lib/db/turso-client';
 
 export async function POST(request: NextRequest) {
   clearRulesCache();

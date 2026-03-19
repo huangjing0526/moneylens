@@ -1,6 +1,6 @@
 import { getDb } from './index';
 import type { Transaction, TransactionInput, Category, CategoryRule, ImportHistory } from '@/types';
-import type { InValue } from '@libsql/client';
+import type { InValue } from './turso-client';
 
 const STATS_EXCLUDE_SQL = `category_slug NOT IN ('credit_card', 'transfer_self')`;
 

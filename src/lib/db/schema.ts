@@ -1,6 +1,6 @@
-import type { Client } from '@libsql/client';
+import type { TursoClient } from './turso-client';
 
-export async function initSchema(db: Client) {
+export async function initSchema(db: TursoClient) {
   await db.batch([
     `CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

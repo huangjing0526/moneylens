@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import type { InValue } from '@libsql/client';
+import type { InValue } from '@/lib/db/turso-client';
 
 export async function POST() {
   const db = await getDb();
