@@ -71,7 +71,7 @@ export function Sidebar() {
         </div>
       </aside>
 
-      <QuickAddPanel open={showQuickAdd} onClose={() => setShowQuickAdd(false)} />
+      <QuickAddPanel open={showQuickAdd} onClose={() => setShowQuickAdd(false)} onSaved={() => window.location.reload()} />
     </>
   );
 }
