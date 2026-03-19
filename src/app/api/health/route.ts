@@ -1,11 +1,34 @@
 import { NextResponse } from 'next/server';
 
+function getEnvVar(name: string): string | undefined {
+  if (process.env[name]) return process.env[name];
+  try {
+    const { getCloudflareContext } = require('@opennextjs/cloudflare');
+    const { env } = getCloudflareContext();
+    return (env as Record<string, string>)[name];
+  } catch {
+    return undefined;
+  }
+}
+
 export async function GET() {
   const checks: Record<string, string> = {};
 
-  // Check env vars
-  checks.TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL ? `set (${process.env.TURSO_DATABASE_URL.substring(0, 30)}...)` : 'MISSING';
-  checks.TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN ? `set (${process.env.TURSO_AUTH_TOKEN.substring(0, 20)}...)` : 'MISSING';
+  const dbUrl = getEnvVar('TURSO_DATABASE_URL');
+  const authToken = getEnvVar('TURSO_AUTH_TOKEN');
+  checks.TURSO_DATABASE_URL = dbUrl ? `set (${dbUrl.substring(0, 30)}...)` : 'MISSING';
+  checks.TURSO_AUTH_TOKEN = authToken ? `set (${authToken.substring(0, 20)}...)` : 'MISSING';
+  checks.process_env_keys = Object.keys(process.env).filter(k => k.startsWith('TURSO') || k.startsWith('APP')).join(', ') || 'none';
+
+  // Check Cloudflare context
+  try {
+    const { getCloudflareContext } = require('@opennextjs/cloudflare');
+    const { env } = getCloudflareContext();
+    const cfKeys = Object.keys(env as Record<string, unknown>).join(', ');
+    checks.cloudflare_env_keys = cfKeys || 'empty';
+  } catch (e) {
+    checks.cloudflare_context = `error: ${e instanceof Error ? e.message : String(e)}`;
+  }
 
   // Try DB connection
   try {
