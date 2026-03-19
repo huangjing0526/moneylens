@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "moneylens",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  }
+  // Secrets (TURSO_DATABASE_URL, TURSO_AUTH_TOKEN, APP_PASSWORD)
+  // should be set via: npx wrangler secret put <NAME>
+}
