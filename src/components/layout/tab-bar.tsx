@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, List, BarChart3, Settings, Plus } from 'lucide-react';
+import { LayoutDashboard, List, Wallet, Settings, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { QuickAddPanel } from '@/components/quick-add/quick-add-panel';
 
@@ -10,7 +10,7 @@ const tabs = [
   { href: '/', icon: LayoutDashboard, label: '概览' },
   { href: '/transactions', icon: List, label: '账单' },
   { href: '#add', icon: Plus, label: '' },
-  { href: '/reports', icon: BarChart3, label: '报告' },
+  { href: '/assets', icon: Wallet, label: '资产' },
   { href: '/settings', icon: Settings, label: '我的' },
 ];
 

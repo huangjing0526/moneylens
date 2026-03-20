@@ -2,15 +2,16 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Upload, List, BarChart3, Tag, Settings, Plus } from 'lucide-react';
+import { LayoutDashboard, Upload, List, BarChart3, Wallet, Tag, Settings, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { QuickAddPanel } from '@/components/quick-add/quick-add-panel';
 
 const navItems = [
   { href: '/', icon: LayoutDashboard, label: '概览' },
-  { href: '/import', icon: Upload, label: '导入' },
   { href: '/transactions', icon: List, label: '账单' },
+  { href: '/assets', icon: Wallet, label: '资产' },
   { href: '/reports', icon: BarChart3, label: '报告' },
+  { href: '/import', icon: Upload, label: '导入' },
   { href: '/categories', icon: Tag, label: '分类' },
   { href: '/settings', icon: Settings, label: '设置' },
 ];
