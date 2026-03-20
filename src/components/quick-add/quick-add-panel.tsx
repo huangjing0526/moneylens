@@ -16,6 +16,7 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
   const [mode, setMode] = useState<InputMode>('nlp');
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('food');
+  const [userPickedCategory, setUserPickedCategory] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('支付宝');
   const [note, setNote] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -42,6 +43,7 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
       setNlpInput('');
       setNlpResult(null);
       setSelectedCategory('food');
+      setUserPickedCategory(false);
     }
   }, [open]);
 
@@ -88,8 +90,8 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
       const now = new Date();
       txTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`;
       txDescription = nlpResult.description || nlpInput.replace(/[\d¥￥.元块]/g, '').trim() || (txType === 'income' ? '收入' : '支出');
-      // Auto-classify based on description
-      txCategory = selectedCategory;
+      // If user manually picked a category, use it; otherwise let backend auto-classify
+      txCategory = userPickedCategory ? selectedCategory : '';
     } else {
       const num = parseFloat(amount);
       if (isNaN(num) || num <= 0) return;
@@ -139,7 +141,7 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
     } finally {
       setSaving(false);
     }
-  }, [mode, nlpResult, nlpInput, amount, note, selectedCategory, paymentMethod, categories, onClose]);
+  }, [mode, nlpResult, nlpInput, amount, note, selectedCategory, userPickedCategory, paymentMethod, categories, onClose, onSaved]);
 
   const canSave = mode === 'nlp' ? !!nlpResult : !!amount;
 
@@ -224,7 +226,7 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
                   return (
                     <button
                       key={cat.slug}
-                      onClick={() => setSelectedCategory(cat.slug)}
+                      onClick={() => { setSelectedCategory(cat.slug); setUserPickedCategory(true); }}
                       className={`flex flex-col items-center gap-1 py-2 rounded-xl transition-colors ${
                         isSelected ? 'bg-gray-100' : ''
                       }`}
