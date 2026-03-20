@@ -113,7 +113,7 @@ export function createTursoClient(url: string, authToken?: string): TursoClient 
     },
 
     async batch(stmts: InStatement[], mode?: string): Promise<ResultSet[]> {
-      const requests: Array<{ type: string; stmt?: { sql: string; args?: Array<{ type: string; value?: string }> } }> = [];
+      const requests: Array<{ type: string; stmt?: { sql: string; args?: Array<{ type: string; value?: string | number }> } }> = [];
       for (const stmt of stmts) {
         const { sql, args } = normalizeStmt(stmt);
         requests.push({
