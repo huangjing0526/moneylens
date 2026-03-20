@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Key, Database, Info, Upload, ChevronRight } from 'lucide-react';
+import { Key, Database, Info, Upload, Tag, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -19,6 +19,18 @@ export default function SettingsPage() {
           <div className="flex-1">
             <p className="text-[15px] text-[#1c1c1e]">导入账单</p>
             <p className="text-xs text-[#8e8e93]">从支付宝、微信等导入账单数据</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#c7c7cc]" />
+        </div>
+      </Link>
+
+      {/* Category management */}
+      <Link href="/categories" className="bg-white rounded-xl overflow-hidden block active:bg-gray-50">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <Tag className="w-5 h-5 text-[#af52de]" />
+          <div className="flex-1">
+            <p className="text-[15px] text-[#1c1c1e]">分类管理</p>
+            <p className="text-xs text-[#8e8e93]">自定义收支分类、图标和颜色</p>
           </div>
           <ChevronRight className="w-4 h-4 text-[#c7c7cc]" />
         </div>

@@ -113,17 +113,17 @@ export default function CategoriesPage() {
               </button>
             </div>
           ) : (
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-1">
               <button
                 onClick={() => { setEditing({ slug: cat.slug, name: cat.name, icon: cat.icon, color: cat.color }); setShowIconPicker(null); }}
-                className="p-1.5 text-[#8e8e93] hover:bg-gray-100 rounded-lg"
+                className="p-1.5 text-[#8e8e93] active:bg-gray-100 rounded-lg"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               {cat.slug !== 'uncategorized' && (
                 <button
                   onClick={() => handleDelete(cat.slug, cat.name)}
-                  className="p-1.5 text-[#ff3b30] hover:bg-gray-100 rounded-lg"
+                  className="p-1.5 text-[#ff3b30] active:bg-gray-100 rounded-lg"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
