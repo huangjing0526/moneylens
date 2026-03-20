@@ -2,13 +2,13 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Upload, BarChart3, Settings, Plus } from 'lucide-react';
+import { LayoutDashboard, List, BarChart3, Settings, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { QuickAddPanel } from '@/components/quick-add/quick-add-panel';
 
 const tabs = [
   { href: '/', icon: LayoutDashboard, label: '概览' },
-  { href: '/import', icon: Upload, label: '导入' },
+  { href: '/transactions', icon: List, label: '账单' },
   { href: '#add', icon: Plus, label: '' },
   { href: '/reports', icon: BarChart3, label: '报告' },
   { href: '/settings', icon: Settings, label: '我的' },
