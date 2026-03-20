@@ -17,12 +17,12 @@ export interface TursoClient {
   batch(stmts: InStatement[], mode?: string): Promise<ResultSet[]>;
 }
 
-function encodeValue(v: InValue): { type: string; value?: string } {
+function encodeValue(v: InValue): { type: string; value?: string | number } {
   if (v === null || v === undefined) return { type: 'null' };
   if (typeof v === 'boolean') return { type: 'integer', value: v ? '1' : '0' };
   if (typeof v === 'number') {
     if (Number.isInteger(v)) return { type: 'integer', value: String(v) };
-    return { type: 'float', value: String(v) };
+    return { type: 'float', value: v };
   }
   return { type: 'text', value: String(v) };
 }
@@ -84,7 +84,7 @@ export function createTursoClient(url: string, authToken?: string): TursoClient 
   }
   const pipelineUrl = `${baseUrl}/v2/pipeline`;
 
-  async function request(requests: Array<{ type: string; stmt?: { sql: string; args?: Array<{ type: string; value?: string }> } }>): Promise<TursoResponse> {
+  async function request(requests: Array<{ type: string; stmt?: { sql: string; args?: Array<{ type: string; value?: string | number }> } }>): Promise<TursoResponse> {
     const res = await fetch(pipelineUrl, {
       method: 'POST',
       headers: {
