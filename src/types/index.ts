@@ -82,3 +82,46 @@ export interface RecurringExpense {
   months: string[];
   category_slug: string;
 }
+
+// ---- Assets ----
+
+export type AccountType = 'cash' | 'debit_card' | 'credit_card' | 'investment' | 'ebank' | 'other';
+
+export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
+  cash: '现金',
+  debit_card: '储蓄卡',
+  credit_card: '信用卡',
+  investment: '投资理财',
+  ebank: '电子钱包',
+  other: '其他',
+};
+
+export interface Account {
+  id: number;
+  name: string;
+  type: AccountType;
+  icon: string;
+  color: string;
+  balance: number;
+  currency: string;
+  institution: string | null;
+  is_archived: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BalanceSnapshot {
+  id: number;
+  account_id: number;
+  balance: number;
+  snapshot_date: string;
+  created_at: string;
+}
+
+export interface AssetSummary {
+  totalAssets: number;
+  totalLiabilities: number;
+  netWorth: number;
+  accountsByType: Partial<Record<AccountType, Account[]>>;
+}

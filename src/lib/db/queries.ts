@@ -1,5 +1,5 @@
 import { getDb } from './index';
-import type { Transaction, TransactionInput, Category, CategoryRule, ImportHistory } from '@/types';
+import type { Transaction, TransactionInput, Category, CategoryRule, ImportHistory, Account, AssetSummary } from '@/types';
 import type { InValue } from './turso-client';
 
 const STATS_EXCLUDE_SQL = `category_slug NOT IN ('credit_card', 'transfer_self')`;
@@ -245,4 +245,120 @@ export async function getDailyExpenseHeatmap(startDate: string, endDate: string)
     args: [startDate, endDate],
   });
   return result.rows as unknown as { date: string; amount: number }[];
+}
+
+// ---- Accounts & Assets ----
+
+export async function getAccounts(includeArchived = false): Promise<Account[]> {
+  const db = await getDb();
+  const where = includeArchived ? '' : 'WHERE is_archived = 0';
+  const result = await db.execute(`SELECT * FROM accounts ${where} ORDER BY type, sort_order, name`);
+  return result.rows as unknown as Account[];
+}
+
+export async function getAccountById(id: number): Promise<Account | undefined> {
+  const db = await getDb();
+  const result = await db.execute({ sql: 'SELECT * FROM accounts WHERE id = ?', args: [id] });
+  return result.rows[0] as unknown as Account | undefined;
+}
+
+export async function createAccount(input: { name: string; type: string; icon?: string; color?: string; balance?: number; institution?: string }): Promise<number> {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: `INSERT INTO accounts (name, type, icon, color, balance, institution) VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [input.name, input.type, input.icon || 'Wallet', input.color || '#007aff', input.balance || 0, input.institution || null],
+  });
+
+  // Create initial snapshot if balance > 0
+  if (input.balance && result.lastInsertRowid) {
+    const today = new Date().toISOString().slice(0, 10);
+    await db.execute({
+      sql: 'INSERT INTO balance_snapshots (account_id, balance, snapshot_date) VALUES (?, ?, ?)',
+      args: [result.lastInsertRowid, input.balance, today],
+    });
+  }
+
+  return Number(result.lastInsertRowid);
+}
+
+export async function updateAccount(id: number, updates: Partial<Account>): Promise<void> {
+  const db = await getDb();
+  const fields: string[] = [];
+  const values: InValue[] = [];
+
+  for (const [key, value] of Object.entries(updates)) {
+    if (['id', 'created_at', 'balance'].includes(key)) continue; // balance has its own function
+    fields.push(`${key} = ?`);
+    values.push(value as InValue);
+  }
+
+  if (fields.length === 0) return;
+  fields.push("updated_at = datetime('now', 'localtime')");
+  values.push(id);
+
+  await db.execute({
+    sql: `UPDATE accounts SET ${fields.join(', ')} WHERE id = ?`,
+    args: values,
+  });
+}
+
+export async function updateAccountBalance(id: number, newBalance: number): Promise<void> {
+  const db = await getDb();
+  const today = new Date().toISOString().slice(0, 10);
+
+  await db.batch([
+    {
+      sql: "UPDATE accounts SET balance = ?, updated_at = datetime('now', 'localtime') WHERE id = ?",
+      args: [newBalance, id],
+    },
+    {
+      sql: 'INSERT INTO balance_snapshots (account_id, balance, snapshot_date) VALUES (?, ?, ?)',
+      args: [id, newBalance, today],
+    },
+  ], 'write');
+}
+
+export async function deleteAccount(id: number): Promise<void> {
+  const db = await getDb();
+  await db.batch([
+    { sql: 'DELETE FROM balance_snapshots WHERE account_id = ?', args: [id] },
+    { sql: 'DELETE FROM accounts WHERE id = ?', args: [id] },
+  ], 'write');
+}
+
+export async function getAssetSummary(): Promise<AssetSummary> {
+  const accounts = await getAccounts();
+  let totalAssets = 0;
+  let totalLiabilities = 0;
+  const accountsByType: Partial<Record<string, Account[]>> = {};
+
+  for (const acc of accounts) {
+    if (acc.balance >= 0) {
+      totalAssets += acc.balance;
+    } else {
+      totalLiabilities += Math.abs(acc.balance);
+    }
+    if (!accountsByType[acc.type]) accountsByType[acc.type] = [];
+    accountsByType[acc.type]!.push(acc);
+  }
+
+  return {
+    totalAssets,
+    totalLiabilities,
+    netWorth: totalAssets - totalLiabilities,
+    accountsByType: accountsByType as AssetSummary['accountsByType'],
+  };
+}
+
+export async function getNetWorthTrend(months: number = 6): Promise<{ date: string; netWorth: number }[]> {
+  const db = await getDb();
+  const result = await db.execute({
+    sql: `SELECT snapshot_date as date, SUM(balance) as netWorth
+          FROM balance_snapshots
+          WHERE snapshot_date >= date('now', '-' || ? || ' months')
+          GROUP BY snapshot_date
+          ORDER BY snapshot_date`,
+    args: [months],
+  });
+  return result.rows as unknown as { date: string; netWorth: number }[];
 }

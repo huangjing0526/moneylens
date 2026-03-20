@@ -53,5 +53,28 @@ export async function initSchema(db: TursoClient) {
     `CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_slug)`,
     `CREATE INDEX IF NOT EXISTS idx_transactions_source_id ON transactions(source_id)`,
     `CREATE INDEX IF NOT EXISTS idx_category_rules_keyword ON category_rules(keyword)`,
+    `CREATE TABLE IF NOT EXISTS accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('cash', 'debit_card', 'credit_card', 'investment', 'ebank', 'other')),
+      icon TEXT DEFAULT 'Wallet',
+      color TEXT DEFAULT '#007aff',
+      balance REAL DEFAULT 0,
+      currency TEXT DEFAULT 'CNY',
+      institution TEXT,
+      is_archived INTEGER DEFAULT 0,
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS balance_snapshots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id INTEGER NOT NULL,
+      balance REAL NOT NULL,
+      snapshot_date TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id)
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_snapshots_account_date ON balance_snapshots(account_id, snapshot_date)`,
   ], 'write');
 }

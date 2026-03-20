@@ -8,6 +8,7 @@ import {
   Dog, Cat, Music, Camera, Tv, Monitor,
   Wrench, Paintbrush, Glasses, Watch, Umbrella,
   Sparkles, Star, Flame, Leaf, Sun, Moon,
+  Wallet, Landmark, TrendingUp, PiggyBank, Building2, CircleDollarSign,
   type LucideIcon
 } from 'lucide-react';
 
@@ -21,6 +22,7 @@ const iconMap: Record<string, LucideIcon> = {
   Dog, Cat, Music, Camera, Tv, Monitor,
   Wrench, Paintbrush, Glasses, Watch, Umbrella,
   Sparkles, Star, Flame, Leaf, Sun, Moon,
+  Wallet, Landmark, TrendingUp, PiggyBank, Building2, CircleDollarSign,
 };
 
 export const AVAILABLE_ICONS = Object.keys(iconMap);
