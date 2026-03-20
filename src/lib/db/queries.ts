@@ -128,10 +128,25 @@ export async function getCategoryRules(): Promise<CategoryRule[]> {
 
 export async function addCategoryRule(keyword: string, categorySlug: string, source: string = 'user'): Promise<void> {
   const db = await getDb();
-  await db.execute({
-    sql: 'INSERT INTO category_rules (keyword, category_slug, source, priority) VALUES (?, ?, ?, ?)',
-    args: [keyword, categorySlug, source, source === 'user' ? 20 : 15],
+  const priority = source === 'user' ? 20 : 15;
+
+  // Upsert: update if same keyword+source exists, otherwise insert
+  const existing = await db.execute({
+    sql: 'SELECT id FROM category_rules WHERE keyword = ? AND source = ?',
+    args: [keyword, source],
   });
+
+  if (existing.rows.length > 0) {
+    await db.execute({
+      sql: 'UPDATE category_rules SET category_slug = ?, priority = ? WHERE id = ?',
+      args: [categorySlug, priority, (existing.rows[0] as unknown as { id: number }).id],
+    });
+  } else {
+    await db.execute({
+      sql: 'INSERT INTO category_rules (keyword, category_slug, source, priority) VALUES (?, ?, ?, ?)',
+      args: [keyword, categorySlug, source, priority],
+    });
+  }
 }
 
 // ---- Import History ----

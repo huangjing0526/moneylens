@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTransactions, insertTransactions, getTransactionCount } from '@/lib/db/queries';
-import { classifyTransactions } from '@/lib/categories/engine';
+import { getTransactions, insertTransactions, getTransactionCount, addCategoryRule } from '@/lib/db/queries';
+import { classifyTransactions, clearRulesCache } from '@/lib/categories/engine';
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,6 +32,12 @@ export async function POST(request: NextRequest) {
 
     const classified = await classifyTransactions(rawTransactions);
     const ids = await insertTransactions(classified, importId);
+
+    // Learn from user's manual category pick
+    if (body.learn?.keyword && body.learn?.category_slug) {
+      await addCategoryRule(body.learn.keyword, body.learn.category_slug, 'learned');
+      clearRulesCache();
+    }
 
     return NextResponse.json({ ids, count: ids.length });
   } catch (e) {

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Delete, MessageSquareText, Calculator } from 'lucide-react';
 import { getIcon } from '@/lib/utils/icons';
 import { parseNaturalLanguage } from '@/lib/nlp/parser';
-import { classifyTransaction } from '@/lib/categories/engine';
 import type { Category } from '@/types';
 import type { NLPParseResult } from '@/lib/nlp/parser';
 
@@ -27,6 +26,7 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
   const [nlpInput, setNlpInput] = useState('');
   const [nlpResult, setNlpResult] = useState<NLPParseResult | null>(null);
   const nlpInputRef = useRef<HTMLInputElement>(null);
+  const prevDescRef = useRef<string>('');
 
   useEffect(() => {
     if (open) {
@@ -44,6 +44,7 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
       setNlpResult(null);
       setSelectedCategory('food');
       setUserPickedCategory(false);
+      prevDescRef.current = '';
     }
   }, [open]);
 
@@ -63,6 +64,36 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
     const result = parseNaturalLanguage(nlpInput);
     setNlpResult(result);
   }, [nlpInput]);
+
+  // Reset userPickedCategory when description changes
+  useEffect(() => {
+    const desc = nlpResult?.description || '';
+    if (desc !== prevDescRef.current) {
+      prevDescRef.current = desc;
+      setUserPickedCategory(false);
+    }
+  }, [nlpResult?.description]);
+
+  // Debounced auto-classify via API
+  useEffect(() => {
+    if (!nlpResult?.description || userPickedCategory) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: nlpResult.description, type: nlpResult.type }),
+        });
+        const { category_slug } = await res.json();
+        if (category_slug) {
+          setSelectedCategory(category_slug);
+        }
+      } catch {}
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [nlpResult?.description, nlpResult?.type, userPickedCategory]);
 
   const handleKeyPress = (key: string) => {
     if (key === 'delete') {
@@ -90,8 +121,8 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
       const now = new Date();
       txTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`;
       txDescription = nlpResult.description || nlpInput.replace(/[\d¥￥.元块]/g, '').trim() || (txType === 'income' ? '收入' : '支出');
-      // If user manually picked a category, use it; otherwise let backend auto-classify
-      txCategory = userPickedCategory ? selectedCategory : '';
+      // Use auto-classified or user-picked category; empty string triggers backend classify
+      txCategory = selectedCategory === 'uncategorized' && !userPickedCategory ? '' : selectedCategory;
     } else {
       const num = parseFloat(amount);
       if (isNaN(num) || num <= 0) return;
@@ -121,6 +152,10 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
             payment_method: paymentMethod,
             note: mode === 'nlp' ? '' : note,
           }],
+          // Learn user's category pick for future auto-classification
+          learn: (mode === 'nlp' && userPickedCategory && nlpResult?.description)
+            ? { keyword: nlpResult.description, category_slug: selectedCategory }
+            : undefined,
         }),
       });
 
@@ -144,6 +179,9 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
   }, [mode, nlpResult, nlpInput, amount, note, selectedCategory, userPickedCategory, paymentMethod, categories, onClose, onSaved]);
 
   const canSave = mode === 'nlp' ? !!nlpResult : !!amount;
+
+  // Find the matched category for preview display
+  const matchedCategory = allCategories.find(c => c.slug === selectedCategory);
 
   if (!open) return null;
 
@@ -211,6 +249,24 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
                     {nlpResult.type === 'income' ? '收入' : '支出'}
                   </span>
                 </div>
+                {/* Show auto-classified category */}
+                {matchedCategory && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[#8e8e93]">分类</span>
+                    <div className="flex items-center gap-1.5">
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${matchedCategory.color}20` }}
+                      >
+                        {(() => { const Icon = getIcon(matchedCategory.icon); return <Icon className="w-3 h-3" style={{ color: matchedCategory.color }} />; })()}
+                      </div>
+                      <span className="text-sm text-[#1c1c1e]">{matchedCategory.name}</span>
+                      {userPickedCategory && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">手选</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
