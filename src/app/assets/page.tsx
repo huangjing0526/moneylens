@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import type { Account, AccountType, AssetSummary } from '@/types';
 import { ACCOUNT_TYPE_LABELS } from '@/types';
 
-const ACCOUNT_TYPES: AccountType[] = ['cash', 'debit_card', 'credit_card', 'investment', 'ebank', 'other'];
+const ACCOUNT_TYPES: AccountType[] = ['cash', 'debit_card', 'credit_card', 'stock', 'fund', 'deposit', 'investment', 'ebank', 'other'];
 
 const PRESET_COLORS = [
   '#007aff', '#34c759', '#ff9500', '#ff3b30', '#af52de',
@@ -20,7 +20,10 @@ const TYPE_DEFAULTS: Record<AccountType, { icon: string; color: string }> = {
   cash: { icon: 'Banknote', color: '#34c759' },
   debit_card: { icon: 'Landmark', color: '#007aff' },
   credit_card: { icon: 'CreditCard', color: '#ff3b30' },
-  investment: { icon: 'TrendingUp', color: '#af52de' },
+  stock: { icon: 'TrendingUp', color: '#ff2d55' },
+  fund: { icon: 'PiggyBank', color: '#af52de' },
+  deposit: { icon: 'Building2', color: '#5856d6' },
+  investment: { icon: 'CircleDollarSign', color: '#00c7be' },
   ebank: { icon: 'Wallet', color: '#ff9500' },
   other: { icon: 'CircleDollarSign', color: '#8e8e93' },
 };

@@ -85,13 +85,16 @@ export interface RecurringExpense {
 
 // ---- Assets ----
 
-export type AccountType = 'cash' | 'debit_card' | 'credit_card' | 'investment' | 'ebank' | 'other';
+export type AccountType = 'cash' | 'debit_card' | 'credit_card' | 'stock' | 'fund' | 'deposit' | 'investment' | 'ebank' | 'other';
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   cash: '现金',
   debit_card: '储蓄卡',
   credit_card: '信用卡',
-  investment: '投资理财',
+  stock: '股票',
+  fund: '基金',
+  deposit: '银行定存',
+  investment: '其他理财',
   ebank: '电子钱包',
   other: '其他',
 };

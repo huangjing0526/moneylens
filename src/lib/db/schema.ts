@@ -56,7 +56,7 @@ export async function initSchema(db: TursoClient) {
     `CREATE TABLE IF NOT EXISTS accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      type TEXT NOT NULL CHECK(type IN ('cash', 'debit_card', 'credit_card', 'investment', 'ebank', 'other')),
+      type TEXT NOT NULL CHECK(type IN ('cash', 'debit_card', 'credit_card', 'stock', 'fund', 'deposit', 'investment', 'ebank', 'other')),
       icon TEXT DEFAULT 'Wallet',
       color TEXT DEFAULT '#007aff',
       balance REAL DEFAULT 0,
