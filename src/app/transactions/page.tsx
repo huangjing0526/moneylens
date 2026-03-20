@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, X, Trash2 } from 'lucide-react';
 import { getIcon } from '@/lib/utils/icons';
 import { formatCurrency, getCurrentYearMonth, getPreviousYearMonth, getMonthRange } from '@/lib/utils/format';
 import type { Transaction, Category } from '@/types';
@@ -28,7 +28,7 @@ function TransactionsContent() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>(urlCategory ? 'all' : 'thisMonth');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(urlCategory);
   const [search, setSearch] = useState('');
-  const [editingCat, setEditingCat] = useState<number | null>(null);
+  const [expandedTx, setExpandedTx] = useState<number | null>(null);
   const [page, setPage] = useState(0);
   const limit = 50;
 
@@ -72,7 +72,7 @@ function TransactionsContent() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category_slug: newSlug }),
     });
-    setEditingCat(null);
+    setExpandedTx(null);
     fetchTransactions();
     toast.success('分类已更新');
   };
@@ -157,8 +157,11 @@ function TransactionsContent() {
                 const color = cat?.color || '#8e8e93';
 
                 return (
-                  <div key={tx.id} className="group relative">
-                    <div className="flex items-center gap-3 px-4 py-3">
+                  <div key={tx.id}>
+                    <div
+                      className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 cursor-pointer"
+                      onClick={() => setExpandedTx(expandedTx === tx.id ? null : tx.id)}
+                    >
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${color}15` }}
@@ -171,12 +174,9 @@ function TransactionsContent() {
                           {tx.counterparty && (
                             <p className="text-xs text-[#8e8e93] truncate">{tx.counterparty}</p>
                           )}
-                          <button
-                            onClick={() => setEditingCat(editingCat === tx.id ? null : tx.id)}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-gray-50 text-[#8e8e93] hover:bg-gray-100"
-                          >
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-50 text-[#8e8e93]">
                             {cat?.name || '未分类'}
-                          </button>
+                          </span>
                         </div>
                       </div>
                       <p className={`text-[15px] font-medium tabular-nums ${
@@ -186,9 +186,11 @@ function TransactionsContent() {
                       </p>
                     </div>
 
-                    {/* Category edit dropdown */}
-                    {editingCat === tx.id && (
-                      <div className="px-4 pb-3">
+                    {/* Expanded action panel */}
+                    {expandedTx === tx.id && (
+                      <div className="px-4 pb-3 space-y-2">
+                        {/* Category grid */}
+                        <p className="text-xs text-[#8e8e93]">修改分类</p>
                         <div className="grid grid-cols-5 gap-2 p-3 bg-gray-50 rounded-xl">
                           {categories.map(c => {
                             const CIcon = getIcon(c.icon);
@@ -206,16 +208,16 @@ function TransactionsContent() {
                             );
                           })}
                         </div>
+                        {/* Delete button */}
+                        <button
+                          onClick={() => { if (confirm('确认删除？')) handleDelete(tx.id); }}
+                          className="flex items-center gap-2 px-3 py-2 text-sm text-[#ff3b30] rounded-lg active:bg-red-50 w-full"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          删除此记录
+                        </button>
                       </div>
                     )}
-
-                    {/* Swipe to delete (simplified as hover) */}
-                    <button
-                      onClick={() => handleDelete(tx.id)}
-                      className="absolute right-0 top-0 bottom-0 w-16 bg-[#ff3b30] text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-r-xl"
-                    >
-                      删除
-                    </button>
 
                     {i < grouped.get(date)!.length - 1 && (
                       <div className="ml-16 border-b border-gray-50" />

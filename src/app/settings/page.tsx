@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Key, Database, Info } from 'lucide-react';
+import { Key, Database, Info, Upload, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
@@ -10,6 +11,18 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-[#1c1c1e]">设置</h1>
+
+      {/* Import entry */}
+      <Link href="/import" className="bg-white rounded-xl overflow-hidden block active:bg-gray-50">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <Upload className="w-5 h-5 text-[#007aff]" />
+          <div className="flex-1">
+            <p className="text-[15px] text-[#1c1c1e]">导入账单</p>
+            <p className="text-xs text-[#8e8e93]">从支付宝、微信等导入账单数据</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#c7c7cc]" />
+        </div>
+      </Link>
 
       {/* API Key */}
       <div className="bg-white rounded-xl overflow-hidden">
