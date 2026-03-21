@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseExcel } from '@/lib/parsers';
 import { classifyTransactions } from '@/lib/categories/engine';
-import { checkSameSourceDuplicate, findCrossSourceDuplicates } from '@/lib/dedup';
+import { checkSameSourceDuplicates, findCrossSourceDuplicates } from '@/lib/dedup';
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -29,10 +29,12 @@ export async function POST(request: NextRequest) {
 
     const classified = await classifyTransactions(result.transactions);
 
-    const withDupCheck = [];
-    for (const t of classified) {
-      withDupCheck.push({ ...t, isDuplicate: await checkSameSourceDuplicate(t) });
-    }
+    // Batch duplicate check: 1 query instead of N
+    const dupIndices = await checkSameSourceDuplicates(classified);
+    const withDupCheck = classified.map((t, i) => ({
+      ...t,
+      isDuplicate: dupIndices.has(i),
+    }));
 
     const nonDuplicates = withDupCheck.filter(t => !t.isDuplicate);
     const crossDups = await findCrossSourceDuplicates(nonDuplicates);

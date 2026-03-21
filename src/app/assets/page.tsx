@@ -5,6 +5,8 @@ import { Plus, X, Check, Trash2, Pencil } from 'lucide-react';
 import { getIcon, AVAILABLE_ICONS } from '@/lib/utils/icons';
 import { formatCurrency } from '@/lib/utils/format';
 import { toast } from 'sonner';
+import { AssetTrend } from '@/components/charts/asset-trend';
+import type { TrendData } from '@/components/charts/asset-trend';
 import type { Account, AccountType, AssetSummary } from '@/types';
 import { ACCOUNT_TYPE_LABELS } from '@/types';
 
@@ -50,12 +52,18 @@ export default function AssetsPage() {
   const [form, setForm] = useState<AccountForm>(emptyForm());
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [trend, setTrend] = useState<TrendData[]>([]);
 
-  const fetchSummary = () => {
-    fetch('/api/assets/summary').then(r => r.json()).then(setSummary);
+  const refreshData = async () => {
+    const [summaryData, trendData] = await Promise.all([
+      fetch('/api/assets/summary').then(r => r.json()),
+      fetch('/api/assets/trend?months=6').then(r => r.json()),
+    ]);
+    setSummary(summaryData);
+    if (Array.isArray(trendData)) setTrend(trendData);
   };
 
-  useEffect(() => { fetchSummary(); }, []);
+  useEffect(() => { refreshData(); }, []);
 
   const handleTypeChange = (type: AccountType) => {
     const defaults = TYPE_DEFAULTS[type];
@@ -93,56 +101,58 @@ export default function AssetsPage() {
   const handleSave = async () => {
     if (!form.name) { toast.error('请输入账户名称'); return; }
     const balance = form.balance ? parseFloat(form.balance) : 0;
+    const payload = {
+      name: form.name, type: form.type,
+      icon: form.icon, color: form.color,
+      balance, institution: form.institution || null,
+    };
 
+    let res: Response;
     if (formMode === 'add') {
-      await fetch('/api/assets/accounts', {
+      res = await fetch('/api/assets/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name, type: form.type,
-          icon: form.icon, color: form.color,
-          balance, institution: form.institution || null,
-        }),
+        body: JSON.stringify(payload),
       });
-      toast.success('账户已添加');
     } else if (formMode === 'edit' && editingId) {
-      await fetch(`/api/assets/accounts/${editingId}`, {
+      res = await fetch(`/api/assets/accounts/${editingId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name, type: form.type,
-          icon: form.icon, color: form.color,
-          balance, institution: form.institution || null,
-        }),
+        body: JSON.stringify(payload),
       });
-      toast.success('账户已更新');
+    } else {
+      return;
     }
 
+    if (!res.ok) { toast.error('操作失败'); return; }
+    toast.success(formMode === 'add' ? '账户已添加' : '账户已更新');
     closeForm();
-    fetchSummary();
+    refreshData();
   };
 
   const handleUpdateBalance = async (id: number) => {
     const balance = parseFloat(balanceInput);
     if (isNaN(balance)) { toast.error('请输入有效金额'); return; }
 
-    await fetch(`/api/assets/accounts/${id}`, {
+    const res = await fetch(`/api/assets/accounts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ balance }),
     });
+    if (!res.ok) { toast.error('更新失败'); return; }
     setEditingBalance(null);
     setBalanceInput('');
-    fetchSummary();
     toast.success('余额已更新');
+    refreshData();
   };
 
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`确认删除「${name}」？历史快照也会删除。`)) return;
-    await fetch(`/api/assets/accounts/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/assets/accounts/${id}`, { method: 'DELETE' });
+    if (!res.ok) { toast.error('删除失败'); return; }
     closeForm();
-    fetchSummary();
     toast.success('账户已删除');
+    refreshData();
   };
 
   const FormIcon = getIcon(form.icon);
@@ -177,6 +187,14 @@ export default function AssetsPage() {
               <span className="font-medium text-white">¥{summary.totalLiabilities.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Net Worth Trend */}
+      {trend.length > 0 && (
+        <div className="bg-white rounded-xl p-4">
+          <p className="text-xs text-[#8e8e93] font-medium mb-2">净资产趋势</p>
+          <AssetTrend data={trend} />
         </div>
       )}
 
