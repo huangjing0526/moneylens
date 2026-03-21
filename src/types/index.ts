@@ -5,7 +5,7 @@ export interface Transaction {
   date: string; // YYYY-MM-DD
   time: string | null; // HH:mm:ss
   amount: number; // positive = income, negative = expense
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   description: string;
   counterparty: string | null;
   category_slug: string;
@@ -24,7 +24,7 @@ export interface TransactionInput {
   date: string;
   time?: string | null;
   amount: number;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   description: string;
   counterparty?: string | null;
   category_slug?: string;

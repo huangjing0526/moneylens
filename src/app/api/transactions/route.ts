@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
       endDate: params.get('endDate') || undefined,
       category: params.get('category') || undefined,
       search: params.get('search') || undefined,
-      type: (params.get('type') as 'income' | 'expense') || undefined,
+      type: (params.get('type') as 'income' | 'expense' | 'transfer') || undefined,
       limit: params.get('limit') ? parseInt(params.get('limit')!) : 50,
       offset: params.get('offset') ? parseInt(params.get('offset')!) : 0,
     };

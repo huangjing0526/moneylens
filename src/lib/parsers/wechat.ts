@@ -35,8 +35,10 @@ export function parseWechatCSV(rows: Record<string, string>[]): TransactionInput
     const incomeExpense = clean('收/支');
     // "已退款"状态的记录应该算收入（钱退回来了），不跳过
     const isRefund = status === '已退款' || status.includes('退款');
-    if (!isRefund && (incomeExpense === '/' || incomeExpense === '')) continue;
-    const isIncome = incomeExpense === '收入' || isRefund;
+    // 空字符串跳过；'/' 在微信中表示转账，保留为 transfer 类型
+    if (!isRefund && incomeExpense === '') continue;
+    const isTransfer = !isRefund && incomeExpense === '/';
+    const isIncome = !isTransfer && (incomeExpense === '收入' || isRefund);
 
     const dateTimeStr = clean('交易时间');
     if (!dateTimeStr) continue;
@@ -49,8 +51,8 @@ export function parseWechatCSV(rows: Record<string, string>[]): TransactionInput
       source_id: clean('交易单号') || null,
       date,
       time: timePart || null,
-      amount: isIncome ? amount : -amount,
-      type: isIncome ? 'income' : 'expense',
+      amount: isTransfer ? amount : (isIncome ? amount : -amount),
+      type: isTransfer ? 'transfer' : (isIncome ? 'income' : 'expense'),
       description: clean('商品', '交易类型') || '',
       counterparty: clean('交易对方') || null,
       payment_method: clean('支付方式') || '微信支付',

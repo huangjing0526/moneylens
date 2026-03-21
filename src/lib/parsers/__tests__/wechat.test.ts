@@ -91,7 +91,7 @@ describe('parseWechatCSV', () => {
     expect(result[0].type).toBe('income');
   });
 
-  it('skips rows with "/" as 收/支 (non income/expense)', () => {
+  it('parses rows with "/" as 收/支 as transfer type', () => {
     const rows = [{
       '交易时间': '2024-01-15 10:00:00',
       '金额(元)': '100.00',
@@ -104,7 +104,9 @@ describe('parseWechatCSV', () => {
     }];
 
     const result = parseWechatCSV(rows);
-    expect(result).toHaveLength(0);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe('transfer');
+    expect(result[0].amount).toBe(100);
   });
 
   it('skips rows with empty 收/支', () => {

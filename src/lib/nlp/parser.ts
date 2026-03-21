@@ -3,13 +3,17 @@ import { format, subDays, startOfWeek, addDays, getDay } from 'date-fns';
 export interface NLPParseResult {
   amount: number;
   date: string; // YYYY-MM-DD
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   description: string;
   confidence: number; // 0-1
 }
 
 const INCOME_KEYWORDS = [
   '工资', '薪资', '奖金', '收入', '红包', '退款', '报销', '利息', '分红', '收到', '到账',
+];
+
+const TRANSFER_KEYWORDS = [
+  '转账', '转给', '转出', '转入', '转钱', '还钱', '借钱',
 ];
 
 // Amount patterns: ¥35, ￥35, 35元, 35块, 35.5, plain numbers
@@ -141,7 +145,10 @@ function extractAmount(input: string): { amount: number; remaining: string } | n
   return { amount: chosen.value, remaining };
 }
 
-function detectType(description: string): 'income' | 'expense' {
+function detectType(description: string): 'income' | 'expense' | 'transfer' {
+  for (const kw of TRANSFER_KEYWORDS) {
+    if (description.includes(kw)) return 'transfer';
+  }
   for (const kw of INCOME_KEYWORDS) {
     if (description.includes(kw)) return 'income';
   }

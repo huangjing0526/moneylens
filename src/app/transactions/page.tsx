@@ -180,9 +180,9 @@ function TransactionsContent() {
                         </div>
                       </div>
                       <p className={`text-[15px] font-medium tabular-nums ${
-                        tx.type === 'income' ? 'text-[#34c759]' : 'text-[#1c1c1e]'
+                        tx.type === 'income' ? 'text-[#34c759]' : tx.type === 'transfer' ? 'text-[#007aff]' : 'text-[#1c1c1e]'
                       }`}>
-                        {tx.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
+                        {tx.amount > 0 ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
                       </p>
                     </div>
 

@@ -110,9 +110,9 @@ export function ImportPreview({
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-medium tabular-nums ${
-                        t.type === 'income' ? 'text-[#34c759]' : 'text-[#1c1c1e]'
+                        t.type === 'income' ? 'text-[#34c759]' : t.type === 'transfer' ? 'text-[#007aff]' : 'text-[#1c1c1e]'
                       }`}>
-                        {t.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
+                        {t.amount > 0 ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
                       </p>
                       {t.category_slug && t.category_slug !== 'uncategorized' && (
                         <p className="text-[10px] text-[#8e8e93]">{t.category_slug}</p>

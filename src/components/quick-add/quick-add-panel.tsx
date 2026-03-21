@@ -110,12 +110,12 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
     let txDate: string;
     let txTime: string;
     let txAmount: number;
-    let txType: 'income' | 'expense';
+    let txType: 'income' | 'expense' | 'transfer';
     let txDescription: string;
     let txCategory: string;
 
     if (mode === 'nlp' && nlpResult) {
-      txAmount = nlpResult.type === 'expense' ? -nlpResult.amount : nlpResult.amount;
+      txAmount = nlpResult.type === 'expense' ? -nlpResult.amount : (nlpResult.type === 'transfer' ? -nlpResult.amount : nlpResult.amount);
       txType = nlpResult.type;
       txDate = nlpResult.date;
       const now = new Date();
@@ -227,7 +227,7 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
               <div className="mb-4 px-4 py-3 bg-gray-50 rounded-2xl space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#8e8e93]">金额</span>
-                  <span className={`text-xl font-semibold ${nlpResult.type === 'income' ? 'text-green-600' : 'text-[#1c1c1e]'}`}>
+                  <span className={`text-xl font-semibold ${nlpResult.type === 'income' ? 'text-green-600' : nlpResult.type === 'transfer' ? 'text-[#007aff]' : 'text-[#1c1c1e]'}`}>
                     {nlpResult.type === 'income' ? '+' : '-'}¥{nlpResult.amount.toFixed(2)}
                   </span>
                 </div>
@@ -244,9 +244,9 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#8e8e93]">类型</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    nlpResult.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                    nlpResult.type === 'income' ? 'bg-green-100 text-green-700' : nlpResult.type === 'transfer' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
                   }`}>
-                    {nlpResult.type === 'income' ? '收入' : '支出'}
+                    {nlpResult.type === 'income' ? '收入' : nlpResult.type === 'transfer' ? '转账' : '支出'}
                   </span>
                 </div>
                 {/* Show auto-classified category */}
@@ -275,7 +275,9 @@ export function QuickAddPanel({ open, onClose, onSaved }: { open: boolean; onClo
               <div className="grid grid-cols-5 gap-2">
                 {(nlpResult?.type === 'income'
                   ? allCategories.filter(c => c.is_income)
-                  : categories
+                  : nlpResult?.type === 'transfer'
+                    ? allCategories.filter(c => ['transfer', 'transfer_self'].includes(c.slug))
+                    : categories
                 ).slice(0, 10).map(cat => {
                   const Icon = getIcon(cat.icon);
                   const isSelected = selectedCategory === cat.slug;

@@ -1,6 +1,12 @@
 import { getCategoryRules } from '@/lib/db/queries';
 import type { TransactionInput, CategoryRule } from '@/types';
 
+const TRANSFER_CATEGORY_SLUGS = new Set(['transfer', 'transfer_self']);
+
+export function isTransferCategory(slug: string): boolean {
+  return TRANSFER_CATEGORY_SLUGS.has(slug);
+}
+
 let rulesCache: CategoryRule[] | null = null;
 
 async function getRules(): Promise<CategoryRule[]> {
@@ -212,10 +218,12 @@ export async function classifyTransaction(t: TransactionInput): Promise<string> 
 
 export async function classifyTransactions(transactions: TransactionInput[]): Promise<TransactionInput[]> {
   const rules = await getRules();
-  return transactions.map(t => ({
-    ...t,
-    category_slug: t.category_slug || classifyTransactionSync(t, rules),
-  }));
+  return transactions.map(t => {
+    const category_slug = t.category_slug || classifyTransactionSync(t, rules);
+    // Post-classification type correction: if category is transfer/transfer_self, set type to 'transfer'
+    const type = isTransferCategory(category_slug) ? 'transfer' : t.type;
+    return { ...t, category_slug, type };
+  });
 }
 
 // Sync version used internally when rules are already loaded

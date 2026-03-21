@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { classifyTransaction } from '@/lib/categories/engine';
-import { clearRulesCache } from '@/lib/categories/engine';
+import { classifyTransaction, clearRulesCache, isTransferCategory } from '@/lib/categories/engine';
 import type { TransactionInput } from '@/types';
 import type { InStatement } from '@/lib/db/turso-client';
 
@@ -17,9 +16,9 @@ export async function POST(request: NextRequest) {
     : "WHERE category_slug = 'uncategorized'";
 
   const rowsResult = await db.execute(
-    `SELECT id, description, counterparty, source, category_slug FROM transactions ${whereClause}`
+    `SELECT id, description, counterparty, source, type, category_slug FROM transactions ${whereClause}`
   );
-  const rows = rowsResult.rows as unknown as { id: number; description: string; counterparty: string | null; source: string; category_slug: string }[];
+  const rows = rowsResult.rows as unknown as { id: number; description: string; counterparty: string | null; source: string; type: string; category_slug: string }[];
 
   const learnedResult = await db.execute("SELECT keyword FROM category_rules WHERE source = 'learned'");
   const learnedKeys = new Set(
@@ -38,13 +37,15 @@ export async function POST(request: NextRequest) {
       source: row.source as TransactionInput['source'],
       date: '',
       amount: 0,
-      type: 'expense',
+      type: row.type as TransactionInput['type'],
     });
 
-    if (slug !== row.category_slug) {
+    const newType = isTransferCategory(slug) ? 'transfer' : row.type;
+
+    if (slug !== row.category_slug || newType !== row.type) {
       updates.push({
-        sql: "UPDATE transactions SET category_slug = ?, updated_at = datetime('now', 'localtime') WHERE id = ?",
-        args: [slug, row.id],
+        sql: "UPDATE transactions SET category_slug = ?, type = ?, updated_at = datetime('now', 'localtime') WHERE id = ?",
+        args: [slug, newType, row.id],
       });
     }
   }

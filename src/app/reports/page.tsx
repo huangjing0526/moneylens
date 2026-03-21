@@ -169,9 +169,9 @@ export default function ReportsPage() {
                               <p className="text-[11px] text-[#8e8e93]">{tx.date}</p>
                             </div>
                             <span className={`text-[13px] tabular-nums shrink-0 ml-2 ${
-                              tx.type === 'income' ? 'text-[#34c759]' : 'text-[#1c1c1e]'
+                              tx.type === 'income' ? 'text-[#34c759]' : tx.type === 'transfer' ? 'text-[#007aff]' : 'text-[#1c1c1e]'
                             }`}>
-                              {tx.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
+                              {tx.amount > 0 ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
                             </span>
                           </div>
                         ))

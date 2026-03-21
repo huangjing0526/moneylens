@@ -104,7 +104,7 @@ async function ocrWithClaude(buffer: Buffer, mimeType: string, apiKey: string): 
             text: `请识别这张账单截图中的所有交易记录，以 JSON 数组格式返回。每条记录包含：
 - date: 日期，格式 YYYY-MM-DD
 - amount: 金额数字（正数）
-- type: "income" 或 "expense"
+- type: "income"、"expense" 或 "transfer"（转账给他人或收到转账）
 - description: 交易描述/商品名
 - counterparty: 交易对方（如有）
 
@@ -124,7 +124,7 @@ async function ocrWithClaude(buffer: Buffer, mimeType: string, apiKey: string): 
   const parsed = JSON.parse(jsonMatch[0]) as Array<{
     date: string;
     amount: number;
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | 'transfer';
     description: string;
     counterparty?: string;
   }>;
@@ -132,7 +132,7 @@ async function ocrWithClaude(buffer: Buffer, mimeType: string, apiKey: string): 
   return parsed.map(item => ({
     source: 'ocr' as const,
     date: item.date,
-    amount: item.type === 'income' ? item.amount : -item.amount,
+    amount: item.type === 'expense' ? -item.amount : (item.type === 'transfer' ? -item.amount : item.amount),
     type: item.type,
     description: item.description,
     counterparty: item.counterparty || null,

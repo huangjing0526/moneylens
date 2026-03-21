@@ -2,7 +2,7 @@ import { getDb } from './index';
 import type { Transaction, TransactionInput, Category, CategoryRule, ImportHistory, Account, AssetSummary } from '@/types';
 import type { InValue } from './turso-client';
 
-const STATS_EXCLUDE_SQL = `category_slug NOT IN ('credit_card', 'transfer_self')`;
+const STATS_EXCLUDE_SQL = `type != 'transfer' AND category_slug != 'credit_card'`;
 
 // ---- Transactions ----
 
@@ -11,7 +11,7 @@ export async function getTransactions(filters?: {
   endDate?: string;
   category?: string;
   search?: string;
-  type?: 'income' | 'expense';
+  type?: 'income' | 'expense' | 'transfer';
   limit?: number;
   offset?: number;
 }): Promise<Transaction[]> {
@@ -208,7 +208,8 @@ export async function getMonthlySummary(yearMonth: string) {
   const excluded = await db.execute({
     sql: `SELECT t.category_slug as slug, c.name, c.icon, c.color, COALESCE(SUM(ABS(t.amount)), 0) as amount
           FROM transactions t JOIN categories c ON t.category_slug = c.slug
-          WHERE t.date >= ? AND t.date <= ? AND t.is_duplicate = 0 AND t.category_slug IN ('credit_card', 'transfer_self')
+          WHERE t.date >= ? AND t.date <= ? AND t.is_duplicate = 0
+            AND (t.type = 'transfer' OR t.category_slug = 'credit_card')
           GROUP BY t.category_slug ORDER BY amount DESC`,
     args: [startDate, endDate],
   });

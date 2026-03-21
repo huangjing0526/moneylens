@@ -35,7 +35,7 @@ export async function initSchema(db: TursoClient) {
       date TEXT NOT NULL,
       time TEXT,
       amount REAL NOT NULL,
-      type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+      type TEXT NOT NULL CHECK(type IN ('income', 'expense', 'transfer')),
       description TEXT NOT NULL,
       counterparty TEXT,
       category_slug TEXT DEFAULT 'uncategorized',
