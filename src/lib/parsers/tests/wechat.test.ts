@@ -67,11 +67,11 @@ describe('parseWechatCSV', () => {
     expect(result[0].amount).toBe(35.00);
   });
 
-  it('11. 收/支=/ 非退款 → transfer 类型', () => {
+  it('11. 收/支=/ 非退款 → transfer 类型，金额为负（转出）', () => {
     const result = parseWechatCSV([makeRow({ '收/支': '/', '当前状态': '支付成功' })]);
     expect(result).toHaveLength(1);
     expect(result[0].type).toBe('transfer');
-    expect(result[0].amount).toBe(35);
+    expect(result[0].amount).toBe(-35);
   });
 
   it('12. 收/支=空 非退款 → 跳过', () => {

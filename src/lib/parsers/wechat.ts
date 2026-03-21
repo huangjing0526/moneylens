@@ -51,7 +51,7 @@ export function parseWechatCSV(rows: Record<string, string>[]): TransactionInput
       source_id: clean('交易单号') || null,
       date,
       time: timePart || null,
-      amount: isTransfer ? amount : (isIncome ? amount : -amount),
+      amount: isTransfer ? -amount : (isIncome ? amount : -amount),
       type: isTransfer ? 'transfer' : (isIncome ? 'income' : 'expense'),
       description: clean('商品', '交易类型') || '',
       counterparty: clean('交易对方') || null,
