@@ -228,8 +228,10 @@ export default function ReportsPage() {
                               <p className="text-[13px] text-[#1c1c1e] truncate">{tx.description}</p>
                               <p className="text-[11px] text-[#8e8e93]">{tx.date}</p>
                             </div>
-                            <span className="text-[13px] tabular-nums shrink-0 ml-2 text-[#8e8e93]">
-                              {formatCurrency(Math.abs(tx.amount))}
+                            <span className={`text-[13px] tabular-nums shrink-0 ml-2 ${
+                              tx.amount > 0 ? 'text-[#34c759]' : 'text-[#8e8e93]'
+                            }`}>
+                              {tx.amount > 0 ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
                             </span>
                           </div>
                         ))
