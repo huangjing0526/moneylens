@@ -340,13 +340,13 @@ describe('getMonthlySummary', () => {
       .mockResolvedValueOnce({ rows: [] });
   });
 
-  it('25. SQL排除 transfer 类型和 credit_card → STATS_EXCLUDE_SQL 生效', async () => {
+  it('25. SQL排除 transfer 类型和转账/信用卡分类 → STATS_EXCLUDE_SQL 生效', async () => {
     await getMonthlySummary('2024-01');
     // Check the first 3 execute calls (totals, byCat, daily) contain the exclusion
     for (let i = 0; i < 3; i++) {
       const sql = mockExecute.mock.calls[i][0].sql as string;
       expect(sql).toContain("type != 'transfer'");
-      expect(sql).toContain("category_slug != 'credit_card'");
+      expect(sql).toContain("category_slug NOT IN ('credit_card', 'transfer', 'transfer_self')");
     }
   });
 
@@ -397,7 +397,7 @@ describe('addCategoryRule', () => {
 // STATS_EXCLUDE_SQL 常量 (1 case)
 // ========================
 describe('STATS_EXCLUDE_SQL', () => {
-  it('31. 确保排除 transfer 类型和 credit_card 分类', async () => {
+  it('31. 确保排除 transfer 类型和转账/信用卡分类', async () => {
     // We verify this through getMonthlySummary since the constant is not exported
     mockExecute
       .mockResolvedValueOnce({ rows: [] })
@@ -407,6 +407,6 @@ describe('STATS_EXCLUDE_SQL', () => {
     await getMonthlySummary('2024-01');
     const sql = mockExecute.mock.calls[0][0].sql as string;
     expect(sql).toContain("type != 'transfer'");
-    expect(sql).toContain("category_slug != 'credit_card'");
+    expect(sql).toContain("category_slug NOT IN ('credit_card', 'transfer', 'transfer_self')");
   });
 });
