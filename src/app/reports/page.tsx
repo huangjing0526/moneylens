@@ -15,7 +15,7 @@ export default function ReportsPage() {
     totalIncome: number;
     totalExpense: number;
     byCategory: { slug: string; name: string; icon: string; color: string; amount: number }[];
-    excludedSummary: { slug: string; name: string; icon: string; color: string; amount: number }[];
+    excludedSummary: { slug: string; name: string; icon: string; color: string; amount: number; net_amount: number }[];
     previousExpense: number;
     changePercent: string | null;
   } | null>(null);
@@ -210,8 +210,10 @@ export default function ReportsPage() {
                       <Icon className="w-4 h-4" style={{ color: item.color }} />
                     </div>
                     <span className="text-sm text-[#1c1c1e] flex-1 text-left">{item.name}</span>
-                    <span className="text-sm text-[#8e8e93] tabular-nums">
-                      {formatCurrency(item.amount)}
+                    <span className={`text-sm tabular-nums ${
+                      item.net_amount > 0 ? 'text-[#34c759]' : item.net_amount < 0 ? 'text-[#ff3b30]' : 'text-[#8e8e93]'
+                    }`}>
+                      {item.net_amount > 0 ? '+' : item.net_amount < 0 ? '-' : ''}{formatCurrency(Math.abs(item.net_amount))}
                     </span>
                     {isExpanded
                       ? <ChevronUp className="w-3.5 h-3.5 text-[#8e8e93]" />

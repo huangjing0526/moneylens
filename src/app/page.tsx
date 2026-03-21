@@ -14,7 +14,7 @@ export default function DashboardPage() {
     totalIncome: number;
     totalExpense: number;
     byCategory: { slug: string; name: string; icon: string; color: string; amount: number }[];
-    excludedSummary: { slug: string; name: string; icon: string; color: string; amount: number }[];
+    excludedSummary: { slug: string; name: string; icon: string; color: string; amount: number; net_amount: number }[];
     changePercent: string | null;
   } | null>(null);
   const [trend, setTrend] = useState<{ month: string; income: number; expense: number }[]>([]);
@@ -127,8 +127,10 @@ export default function DashboardPage() {
                     <Icon className="w-4 h-4" style={{ color: item.color }} />
                   </div>
                   <span className="text-sm text-[#1c1c1e] flex-1">{item.name}</span>
-                  <span className="text-sm text-[#8e8e93] tabular-nums">
-                    {formatCurrency(item.amount)}
+                  <span className={`text-sm tabular-nums ${
+                    item.net_amount > 0 ? 'text-[#34c759]' : item.net_amount < 0 ? 'text-[#ff3b30]' : 'text-[#8e8e93]'
+                  }`}>
+                    {item.net_amount > 0 ? '+' : item.net_amount < 0 ? '-' : ''}{formatCurrency(Math.abs(item.net_amount))}
                   </span>
                   <ChevronRight className="w-4 h-4 text-[#c7c7cc] group-hover:text-[#8e8e93]" />
                 </Link>

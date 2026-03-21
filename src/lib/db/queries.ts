@@ -206,7 +206,9 @@ export async function getMonthlySummary(yearMonth: string) {
   });
 
   const excluded = await db.execute({
-    sql: `SELECT t.category_slug as slug, c.name, c.icon, c.color, COALESCE(SUM(ABS(t.amount)), 0) as amount
+    sql: `SELECT t.category_slug as slug, c.name, c.icon, c.color,
+            COALESCE(SUM(ABS(t.amount)), 0) as amount,
+            COALESCE(SUM(t.amount), 0) as net_amount
           FROM transactions t JOIN categories c ON t.category_slug = c.slug
           WHERE t.date >= ? AND t.date <= ? AND t.is_duplicate = 0
             AND (t.type = 'transfer' OR t.category_slug IN ('credit_card', 'transfer', 'transfer_self'))
@@ -219,7 +221,7 @@ export async function getMonthlySummary(yearMonth: string) {
     totalExpense,
     byCategory: byCat.rows as unknown as { slug: string; name: string; icon: string; color: string; amount: number }[],
     dailyExpense: daily.rows as unknown as { date: string; amount: number }[],
-    excludedSummary: excluded.rows as unknown as { slug: string; name: string; icon: string; color: string; amount: number }[],
+    excludedSummary: excluded.rows as unknown as { slug: string; name: string; icon: string; color: string; amount: number; net_amount: number }[],
   };
 }
 
